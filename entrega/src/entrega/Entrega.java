@@ -83,10 +83,23 @@ class Entrega {
         static final char NAND = '.';
 
         static int exercici1(char[] ops, int[] vars) {
-            throw new UnsupportedOperationException("pendent");
+            boolean taut = true;
+            boolean contr = true;
+            int maxVars = -1;
+            for (int i = 0; i < vars.length; i++) {
+                if (vars[i] > maxVars) {
+                    maxVars = vars[i] + 1;
+                }
+            }
+
+            int totalAsignaciones = 1;
+            for (int i = 0; i < maxVars; i++) {
+                totalAsignaciones = totalAsignaciones * 2;
+            } // Lo mismo que usar el Math.pow
+            return -1;
         }
 
-        private static boolean operar(char op, boolean a, boolean b) {
+        private static boolean devuelveOp(char op, boolean a, boolean b) {
             switch (op) {
                 case CONJ:
                     return a && b;
