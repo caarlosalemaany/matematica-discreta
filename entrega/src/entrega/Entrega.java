@@ -131,15 +131,7 @@ class Entrega {
                     return -1;
                 }
             }
-
-            // 4) Decidir resultado final
-//            if (taut) {
-//                result = 1;
-//            }
-//            if (contr) {
-//                result = 0;
-//            }
-            System.out.println(result);
+            //System.out.println(result);
             return result;
         }
 
@@ -171,31 +163,30 @@ class Entrega {
         static boolean exercici2(int[] universe, Predicate<Integer> p, Predicate<Integer> q) {
 
             // Evaluar ∀x P(x)
-            boolean todosP = true;
+            boolean paraTP = true;
             for (int x : universe) {
                 if (!p.test(x)) {
-                    todosP = false;
+                    paraTP = false;
                     break; // No es necesario seguir si ya hay un elemento que no cumple
                 }
             }
 
             // Evaluar ∃!x Q(x)
-            int contadorQ = 0;
+            int Q = 0;
             for (int x : universe) {
                 if (q.test(x)) {
-                    contadorQ++;
+                    Q++;
                     // Si ya hay más de uno, podemos detenernos
-                    if (contadorQ > 1) {
+                    if (Q > 1) {
                         break;
                     }
                 }
             }
-            boolean exactamenteUnQ = (contadorQ == 1);
+            boolean exactamenteQ = (Q == 1);
 
             // Verificar equivalencia lógica
-            return todosP == exactamenteUnQ;
+            return paraTP == exactamenteQ;
 
-           
         }
 
         static void tests() {
