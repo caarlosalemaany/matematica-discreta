@@ -86,6 +86,21 @@ class Entrega {
             throw new UnsupportedOperationException("pendent");
         }
 
+        private static boolean operar(char op, boolean a, boolean b) {
+            switch (op) {
+                case CONJ:
+                    return a && b;
+                case DISJ:
+                    return a || b;
+                case IMPL:
+                    return !a || b;
+                case NAND:
+                    return !(a && b);
+                default:
+                    throw new IllegalArgumentException("Operador inválido: " + op);
+            }
+        }
+
         /*
      * Aquest mètode té de paràmetre l'univers (representat com un array) i els predicats
      * adients `p` i `q`. Per avaluar aquest predicat, si `x` és un element de l'univers, podeu
