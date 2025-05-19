@@ -83,20 +83,64 @@ class Entrega {
         static final char NAND = '.';
 
         static int exercici1(char[] ops, int[] vars) {
+            int result = 0;
             boolean taut = true;
             boolean contr = true;
+
+            // Buscamos el numero máx de variables
             int maxVars = -1;
-            for (int i = 0; i < vars.length; i++) {
-                if (vars[i] > maxVars) {
-                    maxVars = vars[i] + 1;
+            for (int v : vars) {
+                if (v > maxVars) {
+                    maxVars = v;
+                }
+            }
+            maxVars++;
+
+            // Igual que la función Math.pow
+            int totalAsignaciones = 1;
+            for (int i = 0; i < maxVars; i++) {
+                totalAsignaciones *= 2;
+            }
+
+            // 3) Probar cada combinación de valores
+            for (int mask = 0; mask < totalAsignaciones; mask++) {
+                // Construir vals[] sin bit-shifts
+                boolean[] vals = new boolean[maxVars];
+                int temp = mask;
+                for (int i = 0; i < maxVars; i++) {
+                    vals[i] = (temp % 2) == 1;
+                    temp /= 2;
+                }
+
+                // Evaluar la expresión encadenada
+                boolean currentVal = vals[vars[0]];
+                for (int i = 0; i < ops.length; i++) {
+                    boolean nextVal = vals[vars[i + 1]];
+                    currentVal = devuelveOp(ops[i], currentVal, nextVal);
+                }
+
+                // Actualizar taut y contr, y salir pronto si es posible
+                if (currentVal) {
+                    contr = false;
+                    result = 1;
+                } else {
+                    taut = false;
+                    result = 0;
+                }
+                if (!taut && !contr) {
+                    return -1;
                 }
             }
 
-            int totalAsignaciones = 1;
-            for (int i = 0; i < maxVars; i++) {
-                totalAsignaciones = totalAsignaciones * 2;
-            } // Lo mismo que usar el Math.pow
-            return -1;
+            // 4) Decidir resultado final
+//            if (taut) {
+//                result = 1;
+//            }
+//            if (contr) {
+//                result = 0;
+//            }
+            System.out.println(result);
+            return result;
         }
 
         private static boolean devuelveOp(char op, boolean a, boolean b) {
