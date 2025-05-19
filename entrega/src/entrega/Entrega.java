@@ -240,7 +240,41 @@ class Entrega {
      * Pista: Cercau informació sobre els nombres de Stirling.
          */
         static int exercici1(int[] a) {
-            throw new UnsupportedOperationException("pendent");
+            int n = a.length;
+            // Calculamos los números de Stirling de segunda especie y luego el número de Bell
+            return numeroMaximoP(n);
+        }
+
+        private static int numeroMaximoP(int n) {
+            // Los números de Bell B(n) representan el número total de particiones posibles
+            // para un conjunto de n elementos
+
+            // Para conjuntos pequeños, retornamos valores conocidos
+            if (n == 0 || n == 1) {
+                return 1;
+            }
+
+            // Usaremos el triángulo de Bell para calcular el número
+            int[][] stirling = new int[n + 1][n + 1];
+
+            // Caso base: S(0,0) = 1
+            stirling[0][0] = 1;
+
+            // Rellenamos la tabla de números de Stirling del segundo tipo
+            for (int i = 1; i <= n; i++) {
+                for (int j = 1; j <= i; j++) {
+                    // Fórmula recursiva: S(n,k) = k*S(n-1,k) + S(n-1,k-1)
+                    stirling[i][j] = j * stirling[i - 1][j] + stirling[i - 1][j - 1];
+                }
+            }
+
+            // El número de Bell es la suma de los números de Stirling de segunda especie
+            int numeroMaximoP = 0;
+            for (int k = 0; k <= n; k++) {
+                numeroMaximoP += stirling[n][k];
+            }
+
+            return numeroMaximoP;
         }
 
         /*
