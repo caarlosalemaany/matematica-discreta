@@ -285,8 +285,59 @@ class Entrega {
      * Si no existeix, retornau -1.
          */
         static int exercici2(int[] a, int[][] rel) {
-            throw new UnsupportedOperationException("pendent");
+    // Verificar si la relación es antisimétrica
+    for (int[] pair : rel) {
+        int x = pair[0];
+        int y = pair[1];
+        if (x != y) {
+            // Buscar si existe (y,x) en la relación
+            for (int[] pair2 : rel) {
+                if (pair2[0] == y && pair2[1] == x) {
+                    return -1; // No es antisimétrica
+                }
+            }
         }
+    }
+    
+    // Calcular clausura reflexiva y transitiva
+    int n = a.length;
+    boolean[][] matrix = new boolean[n][n];
+    
+    // Inicializar matriz con la relación original
+    for (int[] pair : rel) {
+        int x = pair[0];
+        int y = pair[1];
+        matrix[x][y] = true;
+    }
+    
+    // Clausura reflexiva
+    for (int i = 0; i < n; i++) {
+        matrix[i][i] = true;
+    }
+    
+    // Clausura transitiva (algoritmo de Warshall)
+    for (int k = 0; k < n; k++) {
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (matrix[i][k] && matrix[k][j]) {
+                    matrix[i][j] = true;
+                }
+            }
+        }
+    }
+    
+    // Contar pares en la clausura
+    int count = 0;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            if (matrix[i][j]) {
+                count++;
+            }
+        }
+    }
+    
+    return count;
+}
 
         /*
      * Donada una relació d'ordre parcial `rel` definida sobre `a` i un subconjunt `x` de `a`,
@@ -296,8 +347,61 @@ class Entrega {
      * - null en qualsevol altre cas
          */
         static Integer exercici3(int[] a, int[][] rel, int[] x, boolean op) {
-            throw new UnsupportedOperationException("pendent");
+    if (x.length == 0) return null;
+    
+    List<Integer> candidates = new ArrayList<>();
+    
+    // Para ínfimo (op=false) o supremo (op=true)
+    for (int elem : a) {
+        boolean isCandidate = true;
+        
+        for (int target : x) {
+            boolean found = false;
+            for (int[] pair : rel) {
+                if (op) { // Supremo: elem >= target
+                    if (pair[0] == target && pair[1] == elem) found = true;
+                } else { // Ínfimo: elem <= target
+                    if (pair[0] == elem && pair[1] == target) found = true;
+                }
+            }
+            if (!found) {
+                isCandidate = false;
+                break;
+            }
         }
+        
+        if (isCandidate) {
+            candidates.add(elem);
+        }
+    }
+    
+    if (candidates.isEmpty()) return null;
+    
+    // Encontrar el mejor candidato (mínimo para supremo, máximo para ínfimo)
+    Integer result = candidates.get(0);
+    for (int cand : candidates) {
+        boolean better = true;
+        for (int other : candidates) {
+            boolean found = false;
+            for (int[] pair : rel) {
+                if (op) { // Para supremo: cand <= other
+                    if (pair[0] == cand && pair[1] == other) found = true;
+                } else { // Para ínfimo: cand >= other
+                    if (pair[0] == other && pair[1] == cand) found = true;
+                }
+            }
+            if (!found) {
+                better = false;
+                break;
+            }
+        }
+        if (better) {
+            result = cand;
+        }
+    }
+    
+    return result;
+}
 
         /*
      * Donada una funció `f` de `a` a `b`, retornau:
@@ -306,10 +410,95 @@ class Entrega {
      *  - Sinó, el graf d'una inversa seva per la dreta (si existeix)
      *  - Sinó, null.
          */
-        static int[][] exercici4(int[] a, int[] b, Function<Integer, Integer> f) {
-            throw new UnsupportedOperationException("pendent");
+       static int[][] exercici4(int[] a, int[] b, Function<Integer, Integer> f) {
+    // Primero verificamos si la función es biyectiva (tiene inversa completa)
+    if (a.length == b.length) {
+        boolean biyectiva = true;
+        boolean[] cubierto = new boolean[b.length];
+        for (int x : a) {
+            int y = f.apply(x);
+            if (y < 0 || y >= b.length || cubierto[y]) {
+                biyectiva = false;
+                break;
+            }
+            cubierto[y] = true;
         }
-
+        
+        if (biyectiva) {
+            int[][] inversa = new int[b.length][2];
+            for (int x : a) {
+                int y = f.apply(x);
+                inversa[y][0] = y;
+                inversa[y][1] = x;
+            }
+            return inversa;
+        }
+    }
+    
+    // Verificar si tiene inversa por la izquierda (función inyectiva)
+    boolean inyectiva = true;
+    for (int i = 0; i < a.length && inyectiva; i++) {
+        for (int j = i + 1; j < a.length; j++) {
+            if (f.apply(a[i]) == f.apply(a[j])) {
+                inyectiva = false;
+                break;
+            }
+        }
+    }
+    
+    if (inyectiva) {
+        int[][] inversaIzq = new int[b.length][2];
+        // Inicializar con valores por defecto
+        for (int i = 0; i < b.length; i++) {
+            inversaIzq[i][0] = i;
+            inversaIzq[i][1] = a[0]; // Valor por defecto
+        }
+        // Asignar los valores conocidos
+        for (int x : a) {
+            int y = f.apply(x);
+            inversaIzq[y][1] = x;
+        }
+        return inversaIzq;
+    }
+    
+    // Verificar si tiene inversa por la derecha (función sobreyectiva)
+    boolean[] cubierto = new boolean[b.length];
+    for (int x : a) {
+        int y = f.apply(x);
+        if (y >= 0 && y < b.length) {
+            cubierto[y] = true;
+        }
+    }
+    
+    boolean sobreyectiva = true;
+    for (boolean c : cubierto) {
+        if (!c) {
+            sobreyectiva = false;
+            break;
+        }
+    }
+    
+    if (sobreyectiva) {
+        int[][] inversaDer = new int[b.length][2];
+        boolean[] usado = new boolean[a.length];
+        
+        for (int y = 0; y < b.length; y++) {
+            inversaDer[y][0] = y;
+            // Buscar cualquier x que mapee a y
+            for (int i = 0; i < a.length; i++) {
+                if (f.apply(a[i]) == y && !usado[i]) {
+                    inversaDer[y][1] = a[i];
+                    usado[i] = true;
+                    break;
+                }
+            }
+        }
+        return inversaDer;
+    }
+    
+    // Si no cumple ninguna condición
+    return null;
+}
         /*
      * Aquí teniu alguns exemples i proves relacionades amb aquests exercicis (vegeu `main`)
          */
@@ -495,8 +684,68 @@ class Entrega {
      * Si és impossible, retornau -1.
          */
         static int exercici4(char[][] mapa) {
-            throw new UnsupportedOperationException("pendent");
+    // Encontrar posición inicial (O) y destino (D)
+    int startX = -1, startY = -1, endX = -1, endY = -1;
+    for (int i = 0; i < mapa.length; i++) {
+        for (int j = 0; j < mapa[i].length; j++) {
+            if (mapa[i][j] == 'O') {
+                startX = i;
+                startY = j;
+            } else if (mapa[i][j] == 'D') {
+                endX = i;
+                endY = j;
+            }
         }
+    }
+    
+    if (startX == -1 || endX == -1) return -1;
+
+    // BFS usando arrays estáticos
+    int rows = mapa.length;
+    int cols = mapa[0].length;
+    int[][] distance = new int[rows][cols];
+    for (int i = 0; i < rows; i++) {
+        Arrays.fill(distance[i], -1);
+    }
+    
+    // Simular cola con arrays
+    int[] queueX = new int[rows * cols];
+    int[] queueY = new int[rows * cols];
+    int head = 0, tail = 0;
+    
+    queueX[tail] = startX;
+    queueY[tail] = startY;
+    distance[startX][startY] = 0;
+    tail++;
+    
+    // Direcciones: arriba, abajo, izquierda, derecha
+    int[][] dirs = {{-1,0}, {1,0}, {0,-1}, {0,1}};
+    
+    while (head < tail) {
+        int x = queueX[head];
+        int y = queueY[head];
+        head++;
+        
+        if (x == endX && y == endY) {
+            return distance[x][y];
+        }
+        
+        for (int[] dir : dirs) {
+            int nx = x + dir[0];
+            int ny = y + dir[1];
+            
+            if (nx >= 0 && nx < rows && ny >= 0 && ny < cols && 
+                mapa[nx][ny] != '#' && distance[nx][ny] == -1) {
+                distance[nx][ny] = distance[x][y] + 1;
+                queueX[tail] = nx;
+                queueY[tail] = ny;
+                tail++;
+            }
+        }
+    }
+    
+    return -1;
+}
 
         /*
      * Aquí teniu alguns exemples i proves relacionades amb aquests exercicis (vegeu `main`)
@@ -570,8 +819,31 @@ class Entrega {
      * Pista: https://en.wikipedia.org/wiki/Exponentiation_by_squaring
          */
         static int[] exercici1(String msg, int n, int e) {
-            throw new UnsupportedOperationException("pendent");
+    byte[] bytes = msg.getBytes();
+    int[] result = new int[bytes.length / 2];
+    
+    for (int i = 0; i < result.length; i++) {
+        int block = ((bytes[2*i] & 0xFF) << 8) | (bytes[2*i+1] & 0xFF);
+        result[i] = modExp(block, e, n);
+    }
+    
+    return result;
+}
+
+private static int modExp(int base, int exp, int mod) {
+    int result = 1;
+    base = base % mod;
+    
+    while (exp > 0) {
+        if ((exp & 1) == 1) {
+            result = (result * base) % mod;
         }
+        exp = exp >> 1;
+        base = (base * base) % mod;
+    }
+    
+    return result;
+}
 
         /*
      * Primer, desencriptau el missatge utilitzant xifrat RSA amb la clau pública donada. Després
@@ -588,8 +860,41 @@ class Entrega {
      * - n és major que 2¹⁴, i n² és menor que Integer.MAX_VALUE
          */
         static String exercici2(int[] m, int n, int e) {
-            throw new UnsupportedOperationException("pendent");
+    // Factorización de n (fuerza bruta permitida)
+    int p = 2;
+    while (p <= Math.sqrt(n)) {
+        if (n % p == 0) {
+            break;
         }
+        p++;
+    }
+    int q = n / p;
+    
+    // Cálculo de φ(n) y d
+    int phi = (p - 1) * (q - 1);
+    int d = modInverse(e, phi);
+    if (d == -1) return null;
+    
+    // Descifrado
+    byte[] bytes = new byte[m.length * 2];
+    for (int i = 0; i < m.length; i++) {
+        int decrypted = modExp(m[i], d, n);
+        bytes[2*i] = (byte)((decrypted >> 8) & 0xFF);
+        bytes[2*i+1] = (byte)(decrypted & 0xFF);
+    }
+    
+    return new String(bytes);
+}
+
+private static int modInverse(int a, int m) {
+    a = a % m;
+    for (int x = 1; x < m; x++) {
+        if ((a * x) % m == 1) {
+            return x;
+        }
+    }
+    return -1;
+}
 
         static void tests() {
             // Exercici 1
